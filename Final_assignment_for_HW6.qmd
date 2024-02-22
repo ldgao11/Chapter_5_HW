@@ -1,0 +1,121 @@
+---
+title: "Final assignment"
+author: "Lidan Gao"
+format: pdf
+editor: visual
+---
+
+# Course Review
+
+In this class, I have learn how to use *RStudio* to code R. It's very important to add **annotations** to the code for future use. I will use R to analyze **RNA-seq** data and do some *ANOVA* tests and make graphs for some data set of my research project.
+
+## Setting up
+
+First we need to **set working directory**. This is the place where you store all of your files. I set the working directory in the file "Intro to R". Then, we need to **install packages** we need by using *install.packages()*. For example, *install.packages("tidyverse")* is to install the package **"tidyverse"**. You only need the quotes for the first time use so R knows that is a name. You don't need to re-install packages unless you update RStudio. Every time you open RStudio, you need to **call packages to library** by using *library()*.
+
+I import the single-sex athletics data file by using *read_xlsx("Single-sex Athletics.xlsx")* and name the dataset using **-\>** as **adata**. I did the same for the single-sex classes data file and name it as **cdata**. I called the tidyverse, readxl and psych packages to my library.
+
+I use echo = FALSE because I want to exclude code in my final document.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofConnecticut/2. Courses work/4_Spring 2024_6 credits/EPSY 5195 Reproducible research in R_1 credit/Week 5/HW-answers-Week-5")
+
+#install.packages("tidyverse") 
+#install.packages("readxl") 
+#install.packages("psych")
+library(tidyverse)
+library(readxl)
+library(psych)
+read_xlsx("Single-sex Athletics.xlsx") -> adata
+read_xlsx("Single-sex Classes.xlsx") -> cdata
+```
+
+## Tidying up - Separate
+
+I use *view()* to check the whole table in another page to see if we need to tidy up any data. We found the variable "MIN-MAX" containing two variables. I use the function *separate(table name, "column name need to be separated", into = c("separated column name 1","separated column name 2"))* to separate the column "MIN-MAX" to new columns "MIN" and "MAX" and name the new table as **adata1**. Use *view(table name)* (See the table in a new tab) or *table name* only (see the table below in the same page) to check the result.
+
+```{r Separate}
+view(adata)
+separate(adata, "MIN-MAX", into = c("MIN", "MAX"))->adata1
+view(adata1)
+# adata1
+```
+
+## Transforming Data - Mutate
+
+I want to create a new variable to find the total number of single-sex classes by adding up each of the totals by content area. I use function *mutate()* to add up these variables "TOT_SSCLASSES_ALGG, TOT_SSCLASSES_OTHM, TOT_SSCLASSES_SCI, TOT_SSCLASSES_ENGL, TOT_SSCLASSES_OTHA". I named the new variable as **TOT_SSCLASSES** and save the data set as **cdata1**.
+
+I give this variable with an appropriate name and save it to your data set.
+
+```{r Mutate}
+view(cdata)
+mutate(cdata, TOT_SSCLASSES = TOT_SSCLASSES_ALGG + TOT_SSCLASSES_OTHM + TOT_SSCLASSES_SCI + TOT_SSCLASSES_ENGL + TOT_SSCLASSES_OTHA) -> cdata1
+view(cdata1)
+```
+
+## Transforming Data - Full_Join
+
+I use *full_join()* to merge these two files together using the "COMBOKEY" which is a surrogate key. The joined files contains every observation from each file even if there is not a match in the other file. The new data set is named as **cadata_full**.
+
+```{r Full_Join}
+full_join(cdata1,adata1, by = "COMBOKEY") -> cadata_full
+view(cadata_full)
+```
+
+## Visualization - Scatterplot
+
+I am interested in the relationships between the number of Science Classes for Males Only and the number of Science Classes for Females Only. I selected SCH_SSCLASSES_SCI_M SCH_SSCLASSES_SCI_F to create a scatterplot by using *ggplot* and *geom_point*. The x axis is the Number of Science Classes for Males Only (SCH_SSCLASSES_SCI_M) and the y axis is the Number of Science Classes for Females Only (SCH_SSCLASSES_SCI_F). There is a trend for the number of science classes for male and female students only to be similar in each school. However, some schools have more science classes for female only and others have more for male only.
+
+In terms of the **data visualization principles** discussed in class, I used standardized units, added labels and explanations to overcome ambiguity. In addition, the number of dimensions in display does not exceed dimensions in data.
+
+```{r scatterplot}
+ggplot(data=cdata) +
+geom_point(mapping = aes(x=SCH_SSCLASSES_SCI_M, y=SCH_SSCLASSES_SCI_F)) +
+  scale_x_continuous(breaks =seq(0, 90, by = 10)) +
+  scale_y_continuous(breaks =seq(0, 90, by = 10)) +
+  labs(
+      title = paste("Single Sex Science Classes in Different Schools"),
+      x = paste("Number of Science Classes for Males Only"),
+      y = paste("Number of Science Classes for Females Only"),
+  ) 
+```
+
+## Visualization - Frequency distribution
+
+I am curious about the distribution of the number of male only science classes. I used *ggplot* and *geom_histogram* to show the histogram for a continuous variable, the number of male only science classes (SCH_SSCLASSES_SCI_M).
+
+The distribution is **positively skewed**. I found that about half of the schools in the data set don't have any male-only science classes. There are some extreme numbers at the right side of the graph, forming a right "tail". These schools have over 20 science classes for male students only.
+
+```{r Frequency distribution}
+ggplot(data=cdata) +
+geom_histogram(mapping = aes(x=SCH_SSCLASSES_SCI_M), binwidth=1) +
+  labs(
+      title = paste("The Distribution of the Number of Male Only Science Classes"),
+      x = paste("Number of Male Only Science Classes"),
+      y = paste("Number of Schools"),
+  ) 
+```
+
+## Descriptive Statistics
+
+I ran the descriptive statistics for merged data set **cadata_full** by using *describe()*. The results return n-count, Mean value, Standard deviation, Median, Min, Max, Range, Skew, Kurtosis, Standard errors, ect.
+
+To my surprise, the minimum of the number of many Single Sex Academic Classes is -9. I guess that the data set has missing data and enter -9 for the missing data. It does not make sense to have -9 classes.
+
+The highest count for *SCH_SSCLASSES_ALGG_M* (Single-Sex Academic Classes: Number of Algebra I, Geometry, Algebra II Classes for Males Only) is 85, comparable to the peak value of 82 for *SCH_SSCLASSES_ALGG_F* (Single-Sex Academic Classes: Number of Algebra I, Geometry, Algebra II Classes for Females Only). In contrast, the upper limit for *SCH_SSCLASSES_OTHM_M* (Other Math Classes for Males Only) is 45, while for *SCH_SSCLASSES_OTHM_F* (Other Math Classes for Females Only), it stands at 25.
+
+Both the minimum counts for male-only single-sex sports and female-only single-sex sports are 0. However, the total number of single-sex sports is recorded as 1. This suggests that at least one school exclusively offers male-only sports, and another school exclusively offers female-only sports, each contributing to the overall count of 1 in single-sex sports.
+
+```{r Descriptive Statistics}
+describe(cadata_full)
+```
+
+## Session Info
+
+This is the detailed session information - the running environment settings.
+
+```{r, results='asis'}
+toLatex(sessionInfo())
+```
