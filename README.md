@@ -9,7 +9,7 @@ Lidan Gao
 - 'Final_assignment_for_HW6 new.qmd'  - Quarto document with modification
 - `Chapter_5_HW.Rproj` - R project document.
 
-##What I have done
+## What I have done
 
 Final_assignment_for_HW6.qmd file includes all the tasks from the last semester's final assigment and the addition from last week's homework. 
 
