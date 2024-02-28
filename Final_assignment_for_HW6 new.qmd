@@ -120,7 +120,7 @@ This is the detailed session information - the running environment settings.
 toLatex(sessionInfo())
 ```
 
-## new session for Chapter 5
+## Github
 
 Download a dataset from a github account using import() function and run describe() from psych package.
 
@@ -146,4 +146,3 @@ library(psych)
 
 describe(disprop_data)
 ```
-
